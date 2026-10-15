@@ -1,5 +1,5 @@
 import { getNotesForKey } from '../constants/ocarinaData';
-import type { FontVariant, FontSizeUnit, OcarinaKey, TabPlaybackItem } from '../types/ocarina';
+import type { FontVariant, FontSizeUnit, OcarinaKey, TabPlaybackItem, ParsedNoteToken } from '../types/ocarina';
 
 export interface TabUrlParams {
   tabs?: string;
@@ -160,3 +160,107 @@ export function parseTabForPlayback(tabText: string, ocarinaKey: OcarinaKey): Ta
 
   return items;
 }
+
+export function parseTabTokens(tabText: string, ocarinaKey: OcarinaKey): ParsedNoteToken[] {
+  const { byKey } = getNotesForKey(ocarinaKey);
+  const tokens: ParsedNoteToken[] = [];
+  let tokenIndex = 0;
+
+  for (let i = 0; i < tabText.length; i++) {
+    const char = tabText[i];
+    const isNote = Boolean(byKey[char]);
+    const isRest = char === 'r';
+
+    if (isNote || isRest) {
+      const startIndex = i;
+      let beats = 1;
+      let checkIdx = i + 1;
+
+      while (checkIdx < tabText.length) {
+        const nextChar = tabText[checkIdx];
+        if (nextChar === '-') {
+          beats += 1;
+          checkIdx++;
+        } else if (nextChar === ' ' || nextChar === '\t') {
+          let lookahead = checkIdx;
+          while (lookahead < tabText.length && (tabText[lookahead] === ' ' || tabText[lookahead] === '\t')) {
+            lookahead++;
+          }
+          if (lookahead < tabText.length && tabText[lookahead] === '-') {
+            checkIdx = lookahead;
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+
+      const endIndex = checkIdx;
+      const rawText = tabText.substring(startIndex, endIndex);
+
+      tokens.push({
+        id: `token-${tokenIndex}-${startIndex}`,
+        char,
+        note: isNote ? byKey[char] : undefined,
+        isRest,
+        beats,
+        rawText,
+        startIndex,
+        endIndex,
+        index: tokenIndex++,
+      });
+
+      i = checkIdx - 1;
+    }
+  }
+
+  return tokens;
+}
+
+export function formatDurationLabel(beats: number): { label: string; symbol: string; namePt: string } {
+  if (beats >= 4) return { label: '1/1', symbol: '𝅝', namePt: 'Semibreve (4t)' };
+  if (beats === 3) return { label: '3/4', symbol: '♩.', namePt: 'Pontuada (3t)' };
+  if (beats === 2) return { label: '1/2', symbol: '𝅗𝅥', namePt: 'Mínima (2t)' };
+  if (beats === 1) return { label: '1/4', symbol: '♩', namePt: 'Semínima (1t)' };
+  if (beats === 0.5) return { label: '1/8', symbol: '♪', namePt: 'Colcheia (½t)' };
+  if (beats <= 0.25) return { label: '1/16', symbol: '𝅘𝅥𝅯', namePt: 'Semicolcheia (¼t)' };
+  return { label: `${beats}t`, symbol: '♩', namePt: `${beats} tempos` };
+}
+
+export function updateNoteDurationInTab(
+  tabText: string,
+  token: ParsedNoteToken,
+  newBeats: number
+): string {
+  const numDashes = Math.max(0, Math.round(newBeats) - 1);
+  const dashes = numDashes > 0 ? ' ' + Array(numDashes).fill('-').join(' ') : '';
+  let newRaw = `${token.char}${dashes}`;
+
+  if (token.endIndex < tabText.length) {
+    const nextChar = tabText[token.endIndex];
+    if (nextChar !== ' ' && nextChar !== '\n' && nextChar !== '\t' && nextChar !== '|') {
+      newRaw += ' ';
+    }
+  }
+
+  return tabText.slice(0, token.startIndex) + newRaw + tabText.slice(token.endIndex);
+}
+
+export function deleteNoteFromTab(tabText: string, token: ParsedNoteToken): string {
+  let end = token.endIndex;
+  if (end < tabText.length && (tabText[end] === ' ' || tabText[end] === '\t')) {
+    end++;
+  }
+  return tabText.slice(0, token.startIndex) + tabText.slice(end);
+}
+
+export function updateNotePitchInTab(
+  tabText: string,
+  token: ParsedNoteToken,
+  newChar: string
+): string {
+  const newRaw = newChar + token.rawText.slice(token.char.length);
+  return tabText.slice(0, token.startIndex) + newRaw + tabText.slice(token.endIndex);
+}
+

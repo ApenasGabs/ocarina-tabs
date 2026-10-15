@@ -1,9 +1,9 @@
-import React from 'react';
-import type { OcarinaKey, FontVariant, FontSizeUnit, OcarinaNote } from '../../types/ocarina';
+import React, { useState } from 'react';
+import type { OcarinaKey, FontVariant, FontSizeUnit, OcarinaNote, ButtonScale } from '../../types/ocarina';
 import { getNotesForKey, EXTRA_KEYS } from '../../constants/ocarinaData';
 import { OcarinaDiagram } from '../OcarinaDiagram/OcarinaDiagram';
 import { playOcarinaFrequency } from '../../audio/ocarinaAudio';
-import { Volume2, VolumeX, Eye, EyeOff } from 'lucide-react';
+import { Volume2, VolumeX, Eye, EyeOff, SlidersHorizontal } from 'lucide-react';
 
 export interface NoteToolbarProps {
   ocarinaKey: OcarinaKey;
@@ -20,6 +20,8 @@ export interface NoteToolbarProps {
   onToggleSound: () => void;
   showMiniDiagrams: boolean;
   onToggleMiniDiagrams: () => void;
+  buttonScale?: ButtonScale;
+  onButtonScaleChange?: (scale: ButtonScale) => void;
 }
 
 export const NoteToolbar: React.FC<NoteToolbarProps> = ({
@@ -37,7 +39,47 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
   onToggleSound,
   showMiniDiagrams,
   onToggleMiniDiagrams,
+  buttonScale,
+  onButtonScaleChange,
 }) => {
+  const [internalScale, setInternalScale] = useState<ButtonScale>('md');
+  const scale = buttonScale || internalScale;
+
+  const handleScaleChange = (newScale: ButtonScale) => {
+    if (onButtonScaleChange) {
+      onButtonScaleChange(newScale);
+    } else {
+      setInternalScale(newScale);
+    }
+  };
+
+  const scaleConfig = {
+    sm: {
+      btnClass: 'btn-sm min-h-[2.5rem] px-2.5',
+      diagramSize: 22,
+      noteTextClass: 'text-sm font-bold',
+      keyBadgeClass: 'text-[10px] px-1 py-0.5',
+      extraClass: 'text-xs',
+      rowGap: 'gap-1.5',
+    },
+    md: {
+      btnClass: 'btn-md min-h-[3.25rem] px-3.5',
+      diagramSize: 30,
+      noteTextClass: 'text-base font-extrabold',
+      keyBadgeClass: 'text-xs px-1.5 py-0.5',
+      extraClass: 'text-sm',
+      rowGap: 'gap-2',
+    },
+    lg: {
+      btnClass: 'btn-lg min-h-[4rem] px-4',
+      diagramSize: 38,
+      noteTextClass: 'text-lg font-black',
+      keyBadgeClass: 'text-xs px-2 py-0.5',
+      extraClass: 'text-base',
+      rowGap: 'gap-2.5',
+    },
+  }[scale];
+
   const { naturals, accidentals } = getNotesForKey(ocarinaKey);
 
   const handleNoteClick = (note: OcarinaNote) => {
@@ -48,7 +90,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-3 p-4 bg-base-100 rounded-2xl border border-base-200 shadow-sm print:hidden">
+    <div className="flex flex-col gap-4 p-4 sm:p-5 bg-base-100 rounded-2xl border border-base-200 shadow-sm print:hidden">
       {/* Top settings row */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-base-200 pb-3">
         {/* Left: Key, Font, Size */}
@@ -59,7 +101,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
             <select
               value={ocarinaKey}
               onChange={(e) => onKeyChange(e.target.value as OcarinaKey)}
-              className="select select-bordered select-xs w-20 font-bold"
+              className="select select-bordered select-xs w-24 font-bold"
               title="Tonalidade da Ocarina (C, F ou G)"
             >
               <option value="C">C (Dó)</option>
@@ -74,7 +116,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
             <select
               value={fontVariant}
               onChange={(e) => onFontVariantChange(e.target.value as FontVariant)}
-              className="select select-bordered select-xs w-20"
+              className="select select-bordered select-xs w-22"
               title="Variante do desenho dos furos na fonte"
             >
               <option value="1">Modo 1</option>
@@ -106,8 +148,40 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
           </div>
         </div>
 
-        {/* Right: Sound & Mini-diagrams toggle */}
-        <div className="flex items-center gap-2">
+        {/* Right: Button Scale, Sound & Mini-diagrams toggle */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Button Scale Selector */}
+          <div className="flex items-center gap-1 bg-base-200/80 p-1 rounded-xl border border-base-300">
+            <SlidersHorizontal className="w-3.5 h-3.5 ml-1 text-base-content/60" />
+            <span className="text-[11px] font-semibold text-base-content/70 px-1">Tamanho:</span>
+            <div className="join join-horizontal">
+              <button
+                type="button"
+                onClick={() => handleScaleChange('sm')}
+                className={`btn btn-xs join-item font-bold ${scale === 'sm' ? 'btn-active btn-neutral' : 'btn-ghost'}`}
+                title="Tamanho Médio-Compacto"
+              >
+                P
+              </button>
+              <button
+                type="button"
+                onClick={() => handleScaleChange('md')}
+                className={`btn btn-xs join-item font-bold ${scale === 'md' ? 'btn-active btn-primary' : 'btn-ghost'}`}
+                title="Tamanho Grande (Recomendado para visualização ideal)"
+              >
+                M
+              </button>
+              <button
+                type="button"
+                onClick={() => handleScaleChange('lg')}
+                className={`btn btn-xs join-item font-bold ${scale === 'lg' ? 'btn-active btn-secondary' : 'btn-ghost'}`}
+                title="Tamanho Extra Grande (Máxima legibilidade)"
+              >
+                G
+              </button>
+            </div>
+          </div>
+
           {/* Sound Toggle */}
           <button
             type="button"
@@ -132,38 +206,101 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         </div>
       </div>
 
-      {/* Accidental / Half Notes Row + Extras */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-[11px] font-semibold text-base-content/60 w-16 text-right mr-1">
-          Acidentes:
+      {/* Natural / Full Notes Row */}
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-base-content/80 flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span>
+            Notas Naturais:
+          </span>
+          <span className="text-[11px] text-base-content/50">
+            Clique na nota para inserir na tablatura
+          </span>
+        </div>
+
+        <div className={`flex flex-wrap items-center ${scaleConfig.rowGap}`}>
+          {naturals.map((note) => (
+            <button
+              key={note.key}
+              type="button"
+              onClick={() => handleNoteClick(note)}
+              className={`btn ${scaleConfig.btnClass} btn-primary text-primary-content gap-2 font-sans shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all`}
+              title={`${note.label} (Tecla: ${note.key}) - ${note.frequency.toFixed(1)}Hz`}
+            >
+              {showMiniDiagrams && (
+                <OcarinaDiagram
+                  holes={note.holes}
+                  size={scaleConfig.diagramSize}
+                  bodyColor="#ffffff"
+                  outlineColor="#ffffff"
+                  closedHoleColor="#ffffff"
+                  holeOpenColor="rgba(0,0,0,0.5)"
+                />
+              )}
+              <div className="flex flex-col items-center leading-none">
+                <span className={scaleConfig.noteTextClass}>{note.label}</span>
+                <span className={`badge badge-neutral badge-xs font-mono opacity-80 mt-0.5 ${scaleConfig.keyBadgeClass}`}>
+                  {note.key}
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Accidental / Half Notes Row */}
+      <div className="flex flex-col gap-1.5 pt-2 border-t border-base-200">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-base-content/80 flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-secondary inline-block"></span>
+            Acidentes (Sustenidos ♯ / Bemóis ♭):
+          </span>
+          <span className="text-[11px] text-base-content/50">
+            Notas semitons intermediárias
+          </span>
+        </div>
+
+        <div className={`flex flex-wrap items-center ${scaleConfig.rowGap}`}>
+          {accidentals.map((note) => (
+            <button
+              key={note.key}
+              type="button"
+              onClick={() => handleNoteClick(note)}
+              className={`btn ${scaleConfig.btnClass} btn-outline border-secondary text-secondary hover:btn-secondary hover:text-secondary-content gap-2 font-sans shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all`}
+              title={`${note.label} (Tecla: ${note.key}) - ${note.frequency.toFixed(1)}Hz`}
+            >
+              {showMiniDiagrams && (
+                <OcarinaDiagram
+                  holes={note.holes}
+                  size={scaleConfig.diagramSize}
+                  bodyColor="currentColor"
+                />
+              )}
+              <div className="flex flex-col items-center leading-none">
+                <span className={scaleConfig.noteTextClass}>{note.label}</span>
+                <span className={`badge badge-ghost badge-xs font-mono opacity-80 mt-0.5 ${scaleConfig.keyBadgeClass}`}>
+                  {note.key}
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Extra Keys Row */}
+      <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-base-200">
+        <span className="text-xs font-semibold text-base-content/60 mr-1">
+          Símbolos & Pausas:
         </span>
-        {accidentals.map((note) => (
-          <button
-            key={note.key}
-            type="button"
-            onClick={() => handleNoteClick(note)}
-            className="btn btn-xs btn-outline hover:btn-secondary gap-1 font-mono text-[11px]"
-            title={`${note.label} - Tecla: ${note.key} (${note.frequency.toFixed(1)}Hz)`}
-          >
-            {showMiniDiagrams && (
-              <OcarinaDiagram holes={note.holes} size={14} bodyColor="currentColor" />
-            )}
-            <span>{note.label}</span>
-          </button>
-        ))}
-
-        <span className="border-l border-base-300 h-5 mx-1" />
-
-        {/* Extra Keys */}
         {EXTRA_KEYS.map((k) => (
           <button
             key={k.key}
             type="button"
             onClick={() => onInsertChar(k.key)}
-            className="btn btn-xs btn-ghost border border-base-300 font-mono text-[11px]"
+            className={`btn btn-sm btn-ghost border border-base-300 font-mono shadow-sm hover:border-primary transition-all`}
             title={k.title}
           >
-            <span>{k.label}</span>
+            <span className="font-bold">{k.label}</span>
           </button>
         ))}
 
@@ -172,33 +309,13 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
           <button
             type="button"
             onClick={onToggleSection}
-            className="btn btn-xs btn-accent text-accent-content gap-1 ml-auto"
+            className="btn btn-sm btn-accent text-accent-content gap-1.5 ml-auto shadow-sm"
             title="Adicionar ou remover ligadura de fraseado musical (slur)"
           >
-            <span>︵ Ligadura</span>
+            <span className="text-base">︵</span>
+            <span>Ligadura (Slur)</span>
           </button>
         )}
-      </div>
-
-      {/* Natural / Full Notes Row */}
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-[11px] font-semibold text-base-content/60 w-16 text-right mr-1">
-          Naturais:
-        </span>
-        {naturals.map((note) => (
-          <button
-            key={note.key}
-            type="button"
-            onClick={() => handleNoteClick(note)}
-            className="btn btn-xs btn-primary text-primary-content gap-1 font-mono font-bold text-[11px]"
-            title={`${note.label} - Tecla: ${note.key} (${note.frequency.toFixed(1)}Hz)`}
-          >
-            {showMiniDiagrams && (
-              <OcarinaDiagram holes={note.holes} size={14} bodyColor="currentColor" />
-            )}
-            <span>{note.label}</span>
-          </button>
-        ))}
       </div>
     </div>
   );
