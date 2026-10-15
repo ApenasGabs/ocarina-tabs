@@ -16,6 +16,13 @@ export interface RhythmControlProps {
   ocarinaKey: OcarinaKey;
   soundEnabled: boolean;
   onPlayingIndexChange?: (index: number | null) => void;
+  isPlaying?: boolean;
+  onTogglePlay?: () => void;
+  onStopPlayback?: () => void;
+  isLooping?: boolean;
+  onToggleLoop?: () => void;
+  metronomeEnabled?: boolean;
+  onToggleMetronome?: () => void;
 }
 
 export const RhythmControl: React.FC<RhythmControlProps> = ({
@@ -29,11 +36,23 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
   ocarinaKey,
   soundEnabled,
   onPlayingIndexChange,
+  isPlaying: externalIsPlaying,
+  onTogglePlay,
+  onStopPlayback,
+  isLooping: externalIsLooping,
+  onToggleLoop,
+  metronomeEnabled: externalMetronome,
+  onToggleMetronome,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isLooping, setIsLooping] = useState(false);
-  const [metronomeEnabled, setMetronomeEnabled] = useState(false);
+  const [internalIsPlaying, setInternalIsPlaying] = useState(false);
+  const [internalIsLooping, setInternalIsLooping] = useState(false);
+  const [internalMetronome, setInternalMetronome] = useState(false);
   const [, setActivePlaybackIndex] = useState<number | null>(null);
+
+  const isControlled = externalIsPlaying !== undefined;
+  const isPlaying = isControlled ? externalIsPlaying : internalIsPlaying;
+  const isLooping = externalIsLooping !== undefined ? externalIsLooping : internalIsLooping;
+  const metronomeEnabled = externalMetronome !== undefined ? externalMetronome : internalMetronome;
 
   const tapTimesRef = useRef<number[]>([]);
   const playbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -41,11 +60,13 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
 
   useEffect(() => {
     return () => {
-      stopPlayback();
+      if (!isControlled) {
+        internalStopPlayback();
+      }
     };
-  }, []);
+  }, [isControlled]);
 
-  const stopPlayback = () => {
+  const internalStopPlayback = () => {
     if (playbackTimerRef.current) {
       clearTimeout(playbackTimerRef.current);
       playbackTimerRef.current = null;
@@ -54,16 +75,16 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
       currentSoundStopRef.current();
       currentSoundStopRef.current = null;
     }
-    setIsPlaying(false);
+    setInternalIsPlaying(false);
     setActivePlaybackIndex(null);
     onPlayingIndexChange?.(null);
   };
 
-  const startPlayback = () => {
+  const internalStartPlayback = () => {
     const items = parseTabForPlayback(tabText, ocarinaKey);
     if (items.length === 0) return;
 
-    setIsPlaying(true);
+    setInternalIsPlaying(true);
     let stepIndex = 0;
 
     const playStep = () => {
@@ -71,7 +92,7 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
         if (isLooping) {
           stepIndex = 0;
         } else {
-          stopPlayback();
+          internalStopPlayback();
           return;
         }
       }
@@ -100,10 +121,38 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
   };
 
   const handleTogglePlay = () => {
-    if (isPlaying) {
-      stopPlayback();
+    if (onTogglePlay) {
+      onTogglePlay();
     } else {
-      startPlayback();
+      if (internalIsPlaying) {
+        internalStopPlayback();
+      } else {
+        internalStartPlayback();
+      }
+    }
+  };
+
+  const handleStopPlayback = () => {
+    if (onStopPlayback) {
+      onStopPlayback();
+    } else {
+      internalStopPlayback();
+    }
+  };
+
+  const handleToggleLoop = () => {
+    if (onToggleLoop) {
+      onToggleLoop();
+    } else {
+      setInternalIsLooping(!internalIsLooping);
+    }
+  };
+
+  const handleToggleMetronome = () => {
+    if (onToggleMetronome) {
+      onToggleMetronome();
+    } else {
+      setInternalMetronome(!internalMetronome);
     }
   };
 
@@ -148,7 +197,7 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
           <button
             onClick={handleTogglePlay}
             className={`btn btn-sm gap-1.5 shadow-sm ${
-              isPlaying ? 'btn-warning' : 'btn-primary'
+              isPlaying ? 'btn-warning text-warning-content' : 'btn-primary'
             }`}
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -156,7 +205,7 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
           </button>
 
           <button
-            onClick={stopPlayback}
+            onClick={handleStopPlayback}
             disabled={!isPlaying}
             className="btn btn-sm btn-ghost btn-square"
             title="Parar reprodução"
@@ -165,7 +214,7 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
           </button>
 
           <button
-            onClick={() => setIsLooping(!isLooping)}
+            onClick={handleToggleLoop}
             className={`btn btn-sm btn-square ${isLooping ? 'btn-active btn-neutral' : 'btn-ghost'}`}
             title="Repetir em loop"
           >
@@ -173,7 +222,7 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
           </button>
 
           <button
-            onClick={() => setMetronomeEnabled(!metronomeEnabled)}
+            onClick={handleToggleMetronome}
             className={`btn btn-sm btn-square ${metronomeEnabled ? 'btn-active btn-neutral' : 'btn-ghost'}`}
             title="Clique de metrônomo"
           >
