@@ -2,10 +2,8 @@ import { describe, it, expect } from 'vitest';
 import {
   getNotesForKey,
   HOLE_MAP,
-  midiToFrequency,
   DURATION_OPTIONS,
   SAMPLE_SONGS,
-  EXTRA_KEYS,
 } from '../constants/ocarinaData';
 import {
   parseUrlParams,

@@ -64,6 +64,7 @@ export const RhythmControl: React.FC<RhythmControlProps> = ({
         internalStopPlayback();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isControlled]);
 
   const internalStopPlayback = () => {

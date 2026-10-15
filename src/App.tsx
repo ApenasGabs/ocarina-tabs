@@ -5,6 +5,7 @@ import { RhythmControl } from './components/RhythmControl/RhythmControl';
 import { TabEditor } from './components/TabEditor/TabEditor';
 import { NoteTimeline } from './components/NoteTimeline/NoteTimeline';
 import { InteractiveOcarinaModal } from './components/OcarinaDiagram/InteractiveOcarinaModal';
+import { ImportExportModal } from './components/ImportExportModal';
 import { ThemeSelector } from './components/ThemeSelector/ThemeSelector';
 import { DURATION_OPTIONS, SAMPLE_SONGS, getNotesForKey } from './constants/ocarinaData';
 import type { DurationOption, FontVariant, FontSizeUnit, OcarinaKey, OcarinaNote, SampleSong, ButtonScale } from './types/ocarina';
@@ -14,16 +15,20 @@ import { playOcarinaFrequency, setMuted } from './audio/ocarinaAudio';
 import { useTabPlayback } from './hooks/useTabPlayback';
 import { Sparkles, BookOpen, Check, Eye } from 'lucide-react';
 
+const initialParams = typeof window !== 'undefined' ? parseUrlParams(window.location.search) : {};
+
 export function App() {
   // Configurações principais da tablatura
-  const [title, setTitle] = useState("Zelda's Lullaby");
-  const [tabText, setTabText] = useState(SAMPLE_SONGS[0].tabs);
-  const [ocarinaKey, setOcarinaKey] = useState<OcarinaKey>('C');
-  const [fontVariant, setFontVariant] = useState<FontVariant>('1');
-  const [fontSize, setFontSize] = useState<number>(54);
-  const [fontSizeUnit, setFontSizeUnit] = useState<FontSizeUnit>('px');
-  const [bpm, setBpm] = useState<number>(100);
-  const [readOnly, setReadOnly] = useState<boolean>(false);
+  const [title, setTitle] = useState(initialParams.name || "Zelda's Lullaby");
+  const [tabText, setTabText] = useState(initialParams.tabs || SAMPLE_SONGS[0].tabs);
+  const [ocarinaKey, setOcarinaKey] = useState<OcarinaKey>(initialParams.key || 'C');
+  const [fontVariant, setFontVariant] = useState<FontVariant>(initialParams.font || '1');
+  const [fontSize, setFontSize] = useState<number>(initialParams.size || 54);
+  const [fontSizeUnit, setFontSizeUnit] = useState<FontSizeUnit>(initialParams.unit || 'px');
+  const [bpm, setBpm] = useState<number>(initialParams.bpm || 100);
+  const [readOnly] = useState<boolean>(
+    initialParams.readonly !== undefined ? initialParams.readonly : false
+  );
 
   // Estados de ferramentas & áudio
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -34,6 +39,8 @@ export function App() {
   const [showTimeline, setShowTimeline] = useState<boolean>(true);
   const [activeTabMode, setActiveTabMode] = useState<'editor' | 'visual'>('editor');
   const [isInteractiveModalOpen, setIsInteractiveModalOpen] = useState<boolean>(false);
+  const [isImportExportModalOpen, setIsImportExportModalOpen] = useState<boolean>(false);
+  const [importExportInitialTab, setImportExportInitialTab] = useState<'import' | 'export'>('import');
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -64,7 +71,7 @@ export function App() {
   }, []);
 
   // Histórico para Undo/Redo
-  const [history, setHistory] = useState<string[]>([SAMPLE_SONGS[0].tabs]);
+  const [history, setHistory] = useState<string[]>([initialParams.tabs || SAMPLE_SONGS[0].tabs]);
   const [historyIndex, setHistoryIndex] = useState<number>(0);
 
   const editorRef = useRef<HTMLDivElement | null>(null);
@@ -74,22 +81,6 @@ export function App() {
     setTimeout(() => {
       setToastMessage((current) => (current === msg ? null : current));
     }, 3000);
-  }, []);
-
-  useEffect(() => {
-    const params = parseUrlParams(window.location.search);
-    if (params.tabs) {
-      setTabText(params.tabs);
-      setHistory([params.tabs]);
-      setHistoryIndex(0);
-    }
-    if (params.name) setTitle(params.name);
-    if (params.key) setOcarinaKey(params.key);
-    if (params.font) setFontVariant(params.font);
-    if (params.size) setFontSize(params.size);
-    if (params.unit) setFontSizeUnit(params.unit);
-    if (params.bpm) setBpm(params.bpm);
-    if (params.readonly !== undefined) setReadOnly(params.readonly);
   }, []);
 
   useEffect(() => {
@@ -210,6 +201,29 @@ export function App() {
     setHistoryIndex(0);
     showToast(`Canção "${song.title}" carregada!`);
   };
+
+  const handleImportSong = useCallback(
+    (song: {
+      title: string;
+      tabText: string;
+      ocarinaKey: OcarinaKey;
+      bpm?: number;
+      fontVariant?: FontVariant;
+      fontSize?: number;
+      fontSizeUnit?: FontSizeUnit;
+      description?: string;
+    }) => {
+      setTitle(song.title);
+      setOcarinaKey(song.ocarinaKey);
+      if (song.bpm) setBpm(song.bpm);
+      if (song.fontVariant) setFontVariant(song.fontVariant);
+      if (song.fontSize) setFontSize(song.fontSize);
+      if (song.fontSizeUnit) setFontSizeUnit(song.fontSizeUnit);
+      updateTabTextWithHistory(song.tabText);
+      showToast(`Canção "${song.title}" importada com sucesso! 🎶`);
+    },
+    [updateTabTextWithHistory, showToast]
+  );
 
   const handleSaveImage = async () => {
     try {
@@ -406,6 +420,19 @@ export function App() {
         </div>
 
         <div className="navbar-end flex items-center gap-2">
+          {/* Botão de Importação & Exportação Universal */}
+          <button
+            onClick={() => {
+              setImportExportInitialTab('import');
+              setIsImportExportModalOpen(true);
+            }}
+            className="btn btn-sm btn-primary btn-outline hidden sm:flex gap-1.5"
+            title="Importar e exportar nos formatos universais (ABC Notation, Cifras, MIDI, WAV...)"
+          >
+            <span>🎼</span>
+            <span>Importar / Exportar</span>
+          </button>
+
           {/* Botão para abrir o Explorador Interativo */}
           <button
             onClick={() => setIsInteractiveModalOpen(true)}
@@ -546,6 +573,10 @@ export function App() {
           onSaveImage={handleSaveImage}
           onSaveText={handleSaveText}
           onOpenTextFile={handleOpenTextFile}
+          onOpenImportExport={(tab) => {
+            setImportExportInitialTab(tab || 'import');
+            setIsImportExportModalOpen(true);
+          }}
           onShareLink={handleShareLink}
           onShareEmbed={handleShareEmbed}
           onPrint={() => window.print()}
@@ -561,6 +592,24 @@ export function App() {
         onClose={() => setIsInteractiveModalOpen(false)}
         ocarinaKey={ocarinaKey}
         onInsertNote={handleInsertNote}
+      />
+
+      {/* Modal de Importação & Exportação Universal */}
+      <ImportExportModal
+        isOpen={isImportExportModalOpen}
+        onClose={() => setIsImportExportModalOpen(false)}
+        initialTab={importExportInitialTab}
+        currentSong={{
+          title,
+          tabText,
+          ocarinaKey,
+          fontVariant,
+          fontSize,
+          fontSizeUnit,
+          bpm,
+        }}
+        onImportSong={handleImportSong}
+        onSaveImage={handleSaveImage}
       />
 
       {/* Footer */}
