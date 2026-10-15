@@ -130,4 +130,5 @@ const ThemeSelector = () => {
   );
 };
 
+export { ThemeSelector };
 export default ThemeSelector;

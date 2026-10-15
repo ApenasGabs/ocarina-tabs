@@ -1,251 +1,94 @@
-# 🚀 Apenas Template - React + TypeScript + Vite + Tailwind CSS + daisyUI
+# 🪈 Ocarina Tabs Studio
 
-Um template moderno, produtivo e completo para iniciar seus projetos React com tecnologias de ponta. Configurado com TypeScript, Vite, Tailwind CSS, daisyUI, testes, releases automáticas e ferramentas de qualidade de código.
+> **Criador, Editor e Player de Tablaturas para Ocarina de 12 Furos com Síntese Sonora e Seletor Visual de Furinhos.**
 
-> **Feito com muito ❤️ e preguiça de fazer tudo do zero**
+Baseado no projeto clássico [panzi/ocarina_tabs](https://github.com/panzi/ocarina_tabs) e reconstruído em uma aplicação web moderna com **React 19**, **TypeScript**, **Tailwind CSS 4**, **daisyUI 5** e **Web Audio API**.
 
-[![GitHub release](https://img.shields.io/github/v/release/ApenasGabs/ApenasTemplate?style=flat-square)](https://github.com/ApenasGabs/ApenasTemplate/releases)
-[![License](https://img.shields.io/github/license/ApenasGabs/ApenasTemplate?style=flat-square)](./LICENSE)
+---
 
-## 📚 Documentação
+## ✨ Funcionalidades Principais
 
-- [🚀 Guia de Configuração](./docs/SETUP.md) - Como configurar o template
-- [📝 Sistema de Release](./docs/RELEASE.md) - Como funciona o versionamento automático
-- [💻 Estrutura do Projeto](#-estrutura-do-projeto) - Organização dos arquivos
+### 1. 🎵 Síntese de Áudio em Tempo Real (Web Audio API)
+- Emulação acústica de ocarina de cerâmica (flauta globular de câmara ressonante).
+- Onda fundamental senoidal aquecida com 2º e 3º harmônicos sutis, ruído de ar (breath noise) e vibrato natural (~5.2 Hz com rampa suave).
+- Feedback auditivo imediato ao clicar nas notas ou ao digitar no teclado.
+- Controle de Mudo e Volume.
 
-## 🎯 Objetivos
+### 2. 👀 Seletor Visual de Furinhos (Escolha por Imagem)
+- Permite que o instrumentista escolha a nota olhando diretamente para o diagrama dos 12 furos da ocarina, sem precisar ler nomes de notas ou partitura.
+- **Explorador Interativo**: Clique diretamente em qualquer um dos 12 furinhos da ocarina (mão esquerda, mão direita, polegares e sub-furos) para abrir ou fechar furos e descobrir qual nota soa com aquela digitação!
 
-Este template tem como objetivo fornecer uma base sólida e pronta para produção para projetos React, eliminando a necessidade de configurar manualmente:
+### 3. ⏱️ Marcação e Controle de Tempo (Rhythm & Playback)
+- **Presets de Duração Musical**:
+  - Semibreve (1/1 - 4 tempos) 𝅝
+  - Mínima (1/2 - 2 tempos) 𝅗𝅥
+  - Semínima (1/4 - 1 tempo) ♩
+  - Colcheia (1/8 - 1/2 tempo) ♪
+  - Semicolcheia (1/16 - 1/4 tempo) 𝅘𝅥𝅯
+- Inserção com sustentação automática de tempo (` - - -`).
+- **Controle de BPM** (40 a 240 BPM) com recurso de **Tap Tempo** interativo.
+- **Player de Tablatura**: Reprodução sequencial da melodia com áudio e opção de clique de metrônomo e repetição em loop.
 
-- ✅ Ambiente de desenvolvimento rápido e reativo (HMR instantâneo)
-- ✅ Tipagem estática completa com TypeScript
-- ✅ Styling elegante com Tailwind CSS + daisyUI
-- ✅ Testes unitários com Vitest
-- ✅ Testes end-to-end com Playwright
-- ✅ Linting e formatação de código com ESLint
-- ✅ **Releases automáticas com Semantic Release**
-- ✅ **Changelog gerado automaticamente**
-- ✅ Build otimizado para produção
-- ✅ Estrutura de projeto bem organizada e escalável
+### 4. 📝 Editor Completo de Tablatura
+- Suporte nativo às fontes tipográficas **Open 12 Hole Ocarina 1** e **Open 12 Hole Ocarina 2**.
+- Tonalidades: **C (Dó Maior)**, **F (Fá Maior)** e **G (Sol Maior)** com notas naturais e acidentes (♯/♭).
+- Suporte a símbolos de repetição (`×2`, `×`), pausas (`r`), barlines de compasso (`|`) e ligaduras de fraseamento musical (`︵`).
+- Histórico de **Desfazer / Refazer** (Ctrl+Z / Ctrl+Y).
+- Canções populares pré-carregadas de *The Legend of Zelda* (*Zelda's Lullaby*, *Song of Time*, *Saria's Song*, *Song of Storms*, *Clocktown Theme*).
 
-## 🛠️ Tecnologias Utilizadas
+### 5. 💾 Exportação, Compartilhamento e Impressão
+- **Exportação em Imagem PNG**: Renderização via Canvas em alta resolução (Retina 2x).
+- **Exportação e Importação de Arquivo de Texto (.txt)**.
+- **Compartilhamento por Link**: Estado da música salvo diretamente nos parâmetros da URL.
+- **Código Embed**: Snippet pronto para incorporar em páginas web via `<iframe>`.
+- **Modo Impressão Otimizado** (`@media print`).
+- Mais de 30 temas visuais selecionáveis via **daisyUI** (Light, Dark, Cupcake, Synthwave, Forest, etc.).
 
-### Frontend
+---
 
-- **React 19.2.0** - Biblioteca JavaScript para UI reativa
-- **TypeScript 5.9.3** - Tipagem estática e segurança de tipos
-- **Vite 7.2.4** - Build tool ultra-rápido com HMR
-- **Tailwind CSS 4.1.18** - Framework CSS utility-first
-- **daisyUI 5.5.14** - Componentes elegantes para Tailwind
-
-### Ferramentas de Desenvolvimento
-
-- **Vitest 4.0.18** - Framework de testes unitários
-- **Playwright 1.58.0** - Testes end-to-end em múltiplos navegadores
-- **ESLint 9.39.1** - Linting e análise de código
-- **PostCSS 8.5.6** - Transformações CSS automatizadas
-
-## 📦 Como Começar
+## 🚀 Como Executar Localmente
 
 ### Pré-requisitos
-
-- Node.js 16+ instalado
+- Node.js 18+ (recomendado Node 20 ou 22)
 - npm ou yarn
 
 ### Instalação
 
 ```bash
 # Clone o repositório
-git clone https://github.com/ApenasGabs/apenasTemplate.git
+git clone https://github.com/ApenasGabs/ocarina-tabs.git
 
-# Entre na pasta do projeto
-cd apenasTemplate
+# Acesse o diretório
+cd ocarina-tabs
 
 # Instale as dependências
 npm install
-```
 
-### Desenvolvimento
-
-```bash
-# Inicia o servidor de desenvolvimento (porta 5173)
+# Inicie o servidor de desenvolvimento
 npm run dev
 ```
 
-O navegador abrirá automaticamente em `http://localhost:5173` com HMR habilitado.
-
-## 📝 Scripts Disponíveis
-
-```bash
-# Desenvolvimento
-npm run dev              # Inicia servidor de desenvolvimento
-
-# Build
-npm run build            # Cria build otimizado para produção
-npm run preview          # Visualiza o build localmente
-
-# Testes
-npm run test             # Executa testes unitários com Vitest
-npm run test:ui          # Interface visual dos testes
-npm run test:coverage    # Relatório de cobertura de testes
-
-# Testes E2E
-npm run e2e              # Executa testes Playwright
-npm run e2e:ui           # Interface visual dos testes E2E
-npm run e2e:debug        # Modo debug dos testes
-npm run e2e:report       # Visualiza o relatório HTML
-
-# Linting
-npm run lint             # Verifica qualidade do código
-npm run lint:fix         # Corrige problemas automaticamente
-```
-
-## 📂 Estrutura do Projeto
-
-```
-apenasTemplate/
-├── e2e/                          # Testes end-to-end
-│   ├── app.spec.ts              # Testes da página
-│   ├── counter.spec.ts          # Testes do contador
-│   ├── features.spec.ts         # Testes das features
-│   ├── advanced.spec.ts         # Testes avançados
-│   └── README.md                # Documentação E2E
-│
-├── src/
-│   ├── __tests__/               # Testes unitários
-│   │   └── example.test.ts
-│   ├── assets/                  # Imagens, fontes, etc.
-│   ├── App.tsx                  # Componente principal
-│   ├── main.tsx                 # Ponto de entrada
-│   └── index.css                # Estilos globais
-│
-├── public/                       # Arquivos estáticos
-├── playwright.config.ts         # Configuração Playwright
-├── tailwind.config.js           # Configuração Tailwind CSS
-├── tsconfig.json                # Configuração TypeScript
-├── vite.config.ts               # Configuração Vite
-└── eslint.config.js             # Configuração ESLint
-```
-
-## 🎨 Recursos Principais
-
-### Tailwind CSS + daisyUI
-
-Componentes elegantes e prontos para uso:
-
-- Navbar responsiva
-- Cards estilizados com links
-- Botões e badges
-- Alerts informativos
-- Grid responsivo
-- Temas pré-configurados (light, dark, cupcake)
-
-### TypeScript
-
-Tipagem completa em todo o projeto para maior segurança e melhor experiência de desenvolvimento.
-
-### Hot Module Replacement (HMR)
-
-Alterações no código são refletidas instantaneamente sem perder o estado da aplicação.
-
-### Testes Completos
-
-- **Vitest**: Testes unitários rápidos e confiáveis
-- **Playwright**: Testes end-to-end em navegadores reais (Chrome, Firefox, Safari, Mobile)
-
-## 🚀 Como Usar Este Template
-
-### 1. Clonar ou usar como template
-
-```bash
-# Via GitHub (use o botão "Use this template")
-# ou clone normalmente
-git clone https://github.com/ApenasGabs/apenasTemplate.git
-```
-
-### 2. Instalar dependências
-
-```bash
-npm install
-```
-
-### 3. Iniciar desenvolvimento
-
-```bash
-npm run dev
-```
-
-### 4. Personalizar
-
-- Edite `src/App.tsx` para suas necessidades
-- Customize cores em `tailwind.config.js`
-- Adicione componentes em `src/`
-- Adicione testes em `src/__tests__/` e `e2e/`
-
-### 5. Build para produção
-
-```bash
-npm run build
-npm run preview  # Testar o build localmente
-```
-
-## 🔧 Personalizações Recomendadas
-
-### Adicionar novos temas daisyUI
-
-Edite `tailwind.config.js`:
-
-```javascript
-daisyui: {
-  themes: ["light", "dark", "cupcake", "bumblebee"],
-}
-```
-
-### Estender Tailwind Theme
-
-Adicione em `tailwind.config.js`:
-
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: '#your-color',
-    },
-  },
-}
-```
-
-### Adicionar variáveis de ambiente
-
-Crie `.env` e `.env.local`:
-
-```
-VITE_API_URL=https://api.example.com
-```
-
-Acesse em seus componentes:
-
-```typescript
-const apiUrl = import.meta.env.VITE_API_URL
-```
-
-## 📚 Documentação e Recursos
-
-- [React](https://react.dev)
-- [TypeScript](https://www.typescriptlang.org)
-- [Vite](https://vite.dev)
-- [Tailwind CSS](https://tailwindcss.com)
-- [daisyUI](https://daisyui.com)
-- [Vitest](https://vitest.dev)
-- [Playwright](https://playwright.dev)
-- [ESLint](https://eslint.org)
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT.
+Acesse `http://localhost:5173` no seu navegador.
 
 ---
 
-**Desenvolvido por [@apenasgabs](https://github.com/apenasgabs)**
+## 🧪 Testes e Qualidade
 
-Feito com muito ❤️ e preguiça de fazer tudo do zero
+```bash
+# Executar testes unitários com Vitest
+npm test
+
+# Build de produção
+npm run build
+
+# Pré-visualizar build localmente
+npm run preview
+```
+
+---
+
+## 📄 Créditos e Licença
+
+- Aplicação desenvolvida por **[Gabriel Rodrigues (@ApenasGabs)](https://github.com/ApenasGabs)** utilizando a base do [ApenasTemplate](https://github.com/ApenasGabs/ApenasTemplate).
+- Fontes tipográficas e arte vetorial original criadas por **Mathias Panzenböck** no projeto [panzi/ocarina_tabs](https://github.com/panzi/ocarina_tabs), licenciadas sob **Open Font License 1.1 (OFL)**.
+- Código-fonte da aplicação licenciado sob a licença **MIT**.
