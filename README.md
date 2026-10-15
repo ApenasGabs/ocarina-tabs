@@ -36,7 +36,15 @@ Baseado no projeto clássico [panzi/ocarina_tabs](https://github.com/panzi/ocari
 - Histórico de **Desfazer / Refazer** (Ctrl+Z / Ctrl+Y).
 - Canções populares pré-carregadas de *The Legend of Zelda* (*Zelda's Lullaby*, *Song of Time*, *Saria's Song*, *Song of Storms*, *Clocktown Theme*).
 
-### 5. 💾 Exportação, Compartilhamento e Impressão
+### 5. 🎼 Formatos Universais de Tablatura (Importação & Exportação)
+- **ABC Notation (.abc)**: Importação e exportação bidirecional de partituras de texto no padrão universal da comunidade musical (compatível com *MuseScore*, *The Session*, *ABCjs* e ferramentas de notação), com detecção de armaduras de clave, compasso, andamento e transposição inteligente de oitavas para a extensão de 12 furos.
+- **Cifras e Nomes de Notas Populares**: Importador inteligente com detecção automática de notação americana/anglo-saxã (`C D E - G - - C2 D2`) e notação latina/solfejo (`Dó Ré Mi - Sol - -`), convertendo diretamente para a tablatura visual de ocarina.
+- **Pacote Estruturado (.otab / JSON)**: Formato de canção com fidelidade total para compartilhamento, salvando título, artista, afinação da ocarina (C, F ou G), BPM, variante de fonte, tamanho e texto integral das notas.
+- **Trilha MIDI Standard (.mid)**: Geração direta no navegador de arquivos MIDI com instrumento General MIDI 79 (Ocarina) e mapa de tempo para DAWs (Reaper, FL Studio, Ableton, Logic, MuseScore).
+- **Gravação em Áudio Acústico WAV (.wav)**: Síntese de áudio 44.1 kHz 16-bit PCM de alta fidelidade renderizada via Web Audio API.
+- **Backup de Biblioteca Completa**: Exportação e importação em lote para guardar ou restaurar todas as canções criadas em arquivo único.
+
+### 6. 💾 Exportação Visual, Compartilhamento e Impressão
 - **Exportação em Imagem PNG**: Renderização via Canvas em alta resolução (Retina 2x).
 - **Exportação e Importação de Arquivo de Texto (.txt)**.
 - **Compartilhamento por Link**: Estado da música salvo diretamente nos parâmetros da URL.
