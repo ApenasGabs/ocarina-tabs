@@ -16,6 +16,7 @@ export interface TabEditorProps {
   onSaveImage: () => void;
   onSaveText: () => void;
   onOpenTextFile: (file: File) => void;
+  onOpenImportExport?: (initialTab?: 'import' | 'export') => void;
   onShareLink: () => void;
   onShareEmbed: () => void;
   onPrint: () => void;
@@ -38,6 +39,7 @@ export const TabEditor: React.FC<TabEditorProps> = ({
   onSaveImage,
   onSaveText,
   onOpenTextFile,
+  onOpenImportExport,
   onShareLink,
   onShareEmbed,
   onPrint,
@@ -126,6 +128,18 @@ export const TabEditor: React.FC<TabEditorProps> = ({
             </>
           )}
 
+          {/* Import / Export Universal Modal trigger */}
+          {onOpenImportExport && !readOnly && (
+            <button
+              onClick={() => onOpenImportExport('import')}
+              className="btn btn-sm btn-ghost gap-1.5"
+              title="Importar partituras universais (ABC Notation, Cifras C D E, Solfejo Dó Ré Mi, .otab)"
+            >
+              <Upload className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Importar</span>
+            </button>
+          )}
+
           {/* Export / Save dropdown */}
           <div className="dropdown dropdown-end">
             <button tabIndex={0} className="btn btn-sm btn-primary gap-1.5 shadow-sm">
@@ -134,7 +148,7 @@ export const TabEditor: React.FC<TabEditorProps> = ({
             </button>
             <ul
               tabIndex={0}
-              className="dropdown-content z-20 menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-200 mt-1"
+              className="dropdown-content z-20 menu p-2 shadow-lg bg-base-100 rounded-box w-64 border border-base-200 mt-1"
             >
               <li>
                 <button onClick={onSaveImage}>
@@ -146,6 +160,22 @@ export const TabEditor: React.FC<TabEditorProps> = ({
                   <span>📄</span> Salvar como Texto (.txt)
                 </button>
               </li>
+              {onOpenImportExport && (
+                <>
+                  <div className="divider my-1"></div>
+                  <li>
+                    <button
+                      onClick={() => onOpenImportExport('export')}
+                      className="text-primary font-bold flex items-center justify-between"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>🎼</span> Mais Formatos...
+                      </span>
+                      <span className="badge badge-primary badge-xs">ABC/MIDI/WAV</span>
+                    </button>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 
