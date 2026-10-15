@@ -3,7 +3,18 @@ import type { OcarinaKey, FontVariant, FontSizeUnit, OcarinaNote, ButtonScale } 
 import { getNotesForKey, EXTRA_KEYS } from '../../constants/ocarinaData';
 import { OcarinaDiagram } from '../OcarinaDiagram/OcarinaDiagram';
 import { playOcarinaFrequency } from '../../audio/ocarinaAudio';
-import { Volume2, VolumeX, Eye, EyeOff, SlidersHorizontal } from 'lucide-react';
+import {
+  Volume2,
+  VolumeX,
+  Eye,
+  EyeOff,
+  SlidersHorizontal,
+  Play,
+  Pause,
+  Delete,
+  Undo,
+  Redo,
+} from 'lucide-react';
 
 export interface NoteToolbarProps {
   ocarinaKey: OcarinaKey;
@@ -22,6 +33,16 @@ export interface NoteToolbarProps {
   onToggleMiniDiagrams: () => void;
   buttonScale?: ButtonScale;
   onButtonScaleChange?: (scale: ButtonScale) => void;
+  isPlaying?: boolean;
+  onTogglePlay?: () => void;
+  onDeleteLastNote?: () => void;
+  canDeleteLastNote?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  lastNoteLabel?: string | null;
+  onPreviewLastNote?: () => void;
 }
 
 export const NoteToolbar: React.FC<NoteToolbarProps> = ({
@@ -41,6 +62,16 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
   onToggleMiniDiagrams,
   buttonScale,
   onButtonScaleChange,
+  isPlaying = false,
+  onTogglePlay,
+  onDeleteLastNote,
+  canDeleteLastNote = false,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
+  lastNoteLabel,
+  onPreviewLastNote,
 }) => {
   const [internalScale, setInternalScale] = useState<ButtonScale>('md');
   const scale = buttonScale || internalScale;
@@ -90,7 +121,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 sm:p-5 bg-base-100 rounded-2xl border border-base-200 shadow-sm print:hidden">
+    <div className="sticky top-16 z-30 flex flex-col gap-3.5 p-4 sm:p-5 bg-base-100/95 backdrop-blur-md rounded-2xl border border-base-200 shadow-md print:hidden transition-all">
       {/* Top settings row */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-base-200 pb-3">
         {/* Left: Key, Font, Size */}
@@ -206,6 +237,82 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         </div>
       </div>
 
+      {/* Quick Actions Bar: Play, Delete Last Note, Undo, Redo, Last Note Preview */}
+      <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-base-200/60 rounded-xl border border-base-300/80">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {/* Play/Pause Button */}
+          {onTogglePlay && (
+            <button
+              type="button"
+              onClick={onTogglePlay}
+              className={`btn btn-sm gap-1.5 shadow-sm font-bold ${
+                isPlaying ? 'btn-warning text-warning-content' : 'btn-primary'
+              }`}
+              title={isPlaying ? 'Pausar reprodução' : 'Tocar tablatura agora'}
+            >
+              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              <span>{isPlaying ? 'Pausar' : 'Tocar'}</span>
+            </button>
+          )}
+
+          {/* Delete Last Note Button */}
+          {onDeleteLastNote && (
+            <button
+              type="button"
+              onClick={onDeleteLastNote}
+              disabled={!canDeleteLastNote}
+              className="btn btn-sm btn-outline btn-error gap-1.5 shadow-sm font-semibold disabled:opacity-40"
+              title="Apagar a última nota inserida e sua sustentação (Backspace)"
+            >
+              <Delete className="w-4 h-4" />
+              <span>Apagar Nota</span>
+            </button>
+          )}
+
+          {/* Undo and Redo */}
+          {onUndo && (
+            <button
+              type="button"
+              onClick={onUndo}
+              disabled={!canUndo}
+              className="btn btn-sm btn-ghost btn-square"
+              title="Desfazer alteração (Ctrl+Z)"
+            >
+              <Undo className="w-4 h-4" />
+            </button>
+          )}
+          {onRedo && (
+            <button
+              type="button"
+              onClick={onRedo}
+              disabled={!canRedo}
+              className="btn btn-sm btn-ghost btn-square"
+              title="Refazer alteração (Ctrl+Y)"
+            >
+              <Redo className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Last Inserted Note Feedback */}
+        {lastNoteLabel && (
+          <div className="flex items-center gap-1.5 text-xs text-base-content/80 font-medium bg-base-100 px-2.5 py-1 rounded-lg border border-base-300">
+            <span className="text-base-content/60">Última:</span>
+            <span className="font-bold text-primary font-mono">{lastNoteLabel}</span>
+            {onPreviewLastNote && (
+              <button
+                type="button"
+                onClick={onPreviewLastNote}
+                className="btn btn-ghost btn-xs btn-circle text-primary hover:bg-primary/10 ml-0.5"
+                title="Ouvir a última nota novamente"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Natural / Full Notes Row */}
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
@@ -214,7 +321,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
             Notas Naturais:
           </span>
           <span className="text-[11px] text-base-content/50">
-            Clique na nota para inserir na tablatura
+            Clique na nota para inserir sem rolar a página
           </span>
         </div>
 

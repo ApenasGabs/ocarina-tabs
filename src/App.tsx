@@ -8,9 +8,10 @@ import { InteractiveOcarinaModal } from './components/OcarinaDiagram/Interactive
 import { ThemeSelector } from './components/ThemeSelector/ThemeSelector';
 import { DURATION_OPTIONS, SAMPLE_SONGS, getNotesForKey } from './constants/ocarinaData';
 import type { DurationOption, FontVariant, FontSizeUnit, OcarinaKey, OcarinaNote, SampleSong, ButtonScale } from './types/ocarina';
-import { parseUrlParams, serializeUrlParams, toggleSectionLigature } from './utils/ocarinaParser';
+import { parseUrlParams, serializeUrlParams, toggleSectionLigature, parseTabTokens, deleteNoteFromTab } from './utils/ocarinaParser';
 import { exportTabAsImage } from './utils/canvasExport';
 import { playOcarinaFrequency, setMuted } from './audio/ocarinaAudio';
+import { useTabPlayback } from './hooks/useTabPlayback';
 import { Sparkles, BookOpen, Check, Eye } from 'lucide-react';
 
 export function App() {
@@ -31,12 +32,24 @@ export function App() {
   const [showMiniDiagrams, setShowMiniDiagrams] = useState<boolean>(true);
   const [buttonScale, setButtonScale] = useState<ButtonScale>('md');
   const [showTimeline, setShowTimeline] = useState<boolean>(true);
-  const [activePlaybackIndex, setActivePlaybackIndex] = useState<number | null>(null);
   const [activeTabMode, setActiveTabMode] = useState<'editor' | 'visual'>('editor');
   const [isInteractiveModalOpen, setIsInteractiveModalOpen] = useState<boolean>(false);
 
   // Toast feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Motor de Reprodução Melódica Compartilhado
+  const playback = useTabPlayback({
+    tabText,
+    ocarinaKey,
+    bpm,
+    soundEnabled,
+  });
+
+  const lastNoteToken = React.useMemo(() => {
+    const tokens = parseTabTokens(tabText, ocarinaKey);
+    return tokens.length > 0 ? tokens[tokens.length - 1] : null;
+  }, [tabText, ocarinaKey]);
 
   // Histórico para Undo/Redo
   const [history, setHistory] = useState<string[]>([SAMPLE_SONGS[0].tabs]);
@@ -113,12 +126,29 @@ export function App() {
         textToInsert = char + selectedDuration.dashes + ' ';
       }
 
-      editor.focus();
+      editor.focus({ preventScroll: true });
       document.execCommand('insertText', false, textToInsert);
       updateTabTextWithHistory(editor.innerText);
     },
     [autoSustainEnabled, selectedDuration, updateTabTextWithHistory]
   );
+
+  const handleDeleteLastNote = useCallback(() => {
+    const tokens = parseTabTokens(tabText, ocarinaKey);
+    if (tokens.length > 0) {
+      const lastToken = tokens[tokens.length - 1];
+      const updated = deleteNoteFromTab(tabText, lastToken);
+      updateTabTextWithHistory(updated);
+      showToast(`Nota ${lastToken.note?.label || lastToken.char} apagada (⌫)`);
+    }
+  }, [tabText, ocarinaKey, updateTabTextWithHistory, showToast]);
+
+  const handlePreviewLastNote = useCallback(() => {
+    if (lastNoteToken?.note && soundEnabled) {
+      const durSec = (lastNoteToken.beats * 60) / bpm;
+      playOcarinaFrequency(lastNoteToken.note.frequency, Math.min(durSec, 1.5));
+    }
+  }, [lastNoteToken, soundEnabled, bpm]);
 
   const handleInsertNote = useCallback(
     (noteOrKey: OcarinaNote | string) => {
@@ -372,7 +402,7 @@ export function App() {
           </div>
         </div>
 
-        {/* Note Toolbar: Tonalidade, Fonte, Tamanho, Botões de Notas Grandes */}
+        {/* Note Toolbar: Tonalidade, Fonte, Tamanho, Botões de Notas Grandes e Ações Rápidas */}
         <NoteToolbar
           ocarinaKey={ocarinaKey}
           onKeyChange={setOcarinaKey}
@@ -390,6 +420,22 @@ export function App() {
           onToggleMiniDiagrams={() => setShowMiniDiagrams(!showMiniDiagrams)}
           buttonScale={buttonScale}
           onButtonScaleChange={setButtonScale}
+          isPlaying={playback.isPlaying}
+          onTogglePlay={playback.togglePlay}
+          onDeleteLastNote={handleDeleteLastNote}
+          canDeleteLastNote={Boolean(lastNoteToken)}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          canUndo={historyIndex > 0}
+          canRedo={historyIndex < history.length - 1}
+          lastNoteLabel={
+            lastNoteToken
+              ? lastNoteToken.isRest
+                ? 'Pausa'
+                : (lastNoteToken.note?.label || lastNoteToken.char)
+              : null
+          }
+          onPreviewLastNote={handlePreviewLastNote}
         />
 
         {/* Seletor Visual de Furinhos (Exibido se o usuário escolheu modo visual ou toggled) */}
@@ -415,7 +461,13 @@ export function App() {
           tabText={tabText}
           ocarinaKey={ocarinaKey}
           soundEnabled={soundEnabled}
-          onPlayingIndexChange={setActivePlaybackIndex}
+          isPlaying={playback.isPlaying}
+          onTogglePlay={playback.togglePlay}
+          onStopPlayback={playback.stopPlayback}
+          isLooping={playback.isLooping}
+          onToggleLoop={() => playback.setIsLooping(!playback.isLooping)}
+          metronomeEnabled={playback.metronomeEnabled}
+          onToggleMetronome={() => playback.setMetronomeEnabled(!playback.metronomeEnabled)}
         />
 
         {/* Linha do Tempo e Controle Individual de Duração por Nota */}
@@ -427,7 +479,7 @@ export function App() {
               ocarinaKey={ocarinaKey}
               soundEnabled={soundEnabled}
               bpm={bpm}
-              activePlaybackIndex={activePlaybackIndex}
+              activePlaybackIndex={playback.activePlaybackIndex}
             />
           </div>
         )}
