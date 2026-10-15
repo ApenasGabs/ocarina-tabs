@@ -38,6 +38,8 @@ export interface SampleSong {
   fontSizeUnit: FontSizeUnit;
   tabs: string;
   description: string;
+  category?: string;
+  suggestedKey?: string;
 }
 
 export interface TabPlaybackItem {

@@ -51,6 +51,18 @@ export function App() {
     return tokens.length > 0 ? tokens[tokens.length - 1] : null;
   }, [tabText, ocarinaKey]);
 
+  const songCategories = React.useMemo(() => {
+    const map = new Map<string, SampleSong[]>();
+    SAMPLE_SONGS.forEach((song) => {
+      const cat = song.category || 'Outras Canções';
+      if (!map.has(cat)) {
+        map.set(cat, []);
+      }
+      map.get(cat)!.push(song);
+    });
+    return Array.from(map.entries());
+  }, []);
+
   // Histórico para Undo/Redo
   const [history, setHistory] = useState<string[]>([SAMPLE_SONGS[0].tabs]);
   const [historyIndex, setHistoryIndex] = useState<number>(0);
@@ -303,31 +315,66 @@ export function App() {
           </div>
         </div>
 
-        <div className="navbar-center hidden lg:flex items-center gap-2">
+        <div className="navbar-center flex items-center gap-2">
           {/* Menu de Canções de Exemplo */}
-          <div className="dropdown dropdown-hover">
-            <button tabIndex={0} className="btn btn-sm btn-ghost gap-1.5 font-semibold">
-              <BookOpen className="w-4 h-4 text-primary" />
-              Canções Populares
-            </button>
-            <ul
+          <div className="dropdown dropdown-bottom dropdown-end lg:dropdown-start">
+            <button
               tabIndex={0}
-              className="dropdown-content z-30 menu p-2 shadow-xl bg-base-100 rounded-box w-64 border border-base-200"
+              className="btn btn-sm btn-ghost gap-1.5 font-semibold px-2 sm:px-3"
+              title="Biblioteca de Canções de The Legend of Zelda"
             >
-              <li className="menu-title text-xs">Temas de The Legend of Zelda</li>
-              {SAMPLE_SONGS.map((song) => (
-                <li key={song.id}>
-                  <button onClick={() => handleLoadSample(song)} className="flex flex-col items-start py-2">
-                    <span className="font-bold text-xs">{song.title}</span>
-                    <span className="text-[10px] text-base-content/60">{song.description}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+              <BookOpen className="w-4 h-4 text-primary shrink-0" />
+              <span className="hidden sm:inline">Canções Populares</span>
+              <span className="badge badge-xs badge-primary font-bold">{SAMPLE_SONGS.length}</span>
+            </button>
+            <div
+              tabIndex={0}
+              className="dropdown-content z-50 shadow-2xl bg-base-100 rounded-2xl w-80 sm:w-96 border border-base-200 p-2 max-h-[75vh] overflow-y-auto"
+            >
+              <div className="px-3 py-2 border-b border-base-200 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
+                    <span>🗡️</span> Presets de The Legend of Zelda
+                  </h3>
+                  <p className="text-[10px] text-base-content/60">
+                    {SAMPLE_SONGS.length} canções afinadas para Ocarina de 12 Furos
+                  </p>
+                </div>
+              </div>
+              <div className="py-2 space-y-3">
+                {songCategories.map(([categoryName, songs]) => (
+                  <div key={categoryName} className="space-y-1">
+                    <div className="text-[11px] font-bold text-base-content/70 px-3 py-1 bg-base-200/60 rounded-md flex items-center justify-between">
+                      <span>{categoryName}</span>
+                      <span className="text-[10px] opacity-75">{songs.length}</span>
+                    </div>
+                    <ul className="menu menu-compact p-0 gap-0.5">
+                      {songs.map((song) => (
+                        <li key={song.id}>
+                          <button
+                            onClick={() => handleLoadSample(song)}
+                            className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-base-200 transition-colors text-left"
+                          >
+                            <div className="flex flex-col min-w-0 pr-2">
+                              <span className="font-bold text-xs truncate">{song.title}</span>
+                              <span className="text-[10px] text-base-content/60 line-clamp-1">{song.description}</span>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              <span className="badge badge-ghost badge-xs text-[10px] font-mono">{song.bpm} BPM</span>
+                              <span className="badge badge-primary badge-outline badge-xs text-[10px] font-bold">Tom {song.suggestedKey || song.key}</span>
+                            </div>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Alternador de Modo: Editor vs Seletor Visual vs Linha do Tempo */}
-          <div className="join join-horizontal bg-base-200 p-0.5 rounded-xl border border-base-300">
+          <div className="hidden md:join join-horizontal bg-base-200 p-0.5 rounded-xl border border-base-300">
             <button
               onClick={() => setActiveTabMode('editor')}
               className={`btn btn-xs join-item rounded-lg ${

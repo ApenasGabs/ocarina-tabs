@@ -135,10 +135,27 @@ describe('Section Slur / Ligature Formatting', () => {
 
 describe('Sample Songs Library', () => {
   it('contains Zelda classics with valid ocarina tab notation', () => {
-    expect(SAMPLE_SONGS.length).toBeGreaterThanOrEqual(4);
+    expect(SAMPLE_SONGS.length).toBeGreaterThanOrEqual(17);
     const zeldasLullaby = SAMPLE_SONGS.find((s) => s.id === 'zeldas-lullaby');
     expect(zeldasLullaby).toBeDefined();
     expect(zeldasLullaby?.tabs).toContain('H - P - K');
+
+    // Categorias esperadas presentes
+    const categories = new Set(SAMPLE_SONGS.map((s) => s.category));
+    expect(categories.has('Canções Mágicas de OoT')).toBe(true);
+    expect(categories.has('Músicas de Teleporte (OoT)')).toBe(true);
+    expect(categories.has("Majora's Mask & Temas Clássicos")).toBe(true);
+
+    // Validação de tokenização de canções chave
+    const songOfStorms = SAMPLE_SONGS.find((s) => s.id === 'song-of-storms');
+    expect(songOfStorms).toBeDefined();
+    const stormsTokens = parseTabTokens(songOfStorms!.tabs, 'C');
+    expect(stormsTokens.length).toBeGreaterThan(5);
+
+    const gerudoValley = SAMPLE_SONGS.find((s) => s.id === 'gerudo-valley');
+    expect(gerudoValley).toBeDefined();
+    const gerudoTokens = parseTabTokens(gerudoValley!.tabs, 'C');
+    expect(gerudoTokens.length).toBeGreaterThan(5);
   });
 });
 
