@@ -34,11 +34,52 @@ describe('Ocarina Constants & Data', () => {
     expect(noteU.holes).toEqual([]);
   });
 
-  it('deve conter canções de exemplo válidas', () => {
-    expect(SAMPLE_SONGS.length).toBeGreaterThanOrEqual(4);
-    const zeldasLullaby = SAMPLE_SONGS.find((s) => s.id === 'zeldas-lullaby');
-    expect(zeldasLullaby).toBeDefined();
-    expect(zeldasLullaby?.tabs).toContain('H - P - K');
+  it('deve conter a biblioteca completa de canções de Zelda com metadados e categorias', () => {
+    expect(SAMPLE_SONGS.length).toBeGreaterThanOrEqual(17);
+
+    const requiredSongIds = [
+      'zeldas-lullaby',
+      'song-of-time',
+      'song-of-storms',
+      'sarias-song',
+      'eponas-song',
+      'suns-song',
+      'minuet-of-forest',
+      'bolero-of-fire',
+      'serenade-of-water',
+      'requiem-of-spirit',
+      'nocturne-of-shadow',
+      'prelude-of-light',
+      'song-of-healing',
+      'song-of-soaring',
+      'oath-to-order',
+      'gerudo-valley',
+      'great-fairys-fountain',
+    ];
+
+    for (const id of requiredSongIds) {
+      const song = SAMPLE_SONGS.find((s) => s.id === id);
+      expect(song, `Canção ${id} deve existir nos presets`).toBeDefined();
+      expect(song?.title).toBeTruthy();
+      expect(song?.description).toBeTruthy();
+      expect(song?.bpm).toBeGreaterThan(50);
+      expect(song?.category).toBeTruthy();
+      expect(song?.suggestedKey).toBe('C');
+      expect(song?.tabs.length).toBeGreaterThan(0);
+
+      // Validação melódica: o parser de playback deve processar as notas corretamente
+      const playbackItems = parseTabForPlayback(song!.tabs, song!.key);
+      expect(playbackItems.length).toBeGreaterThan(0);
+      expect(playbackItems.some((item) => !item.isRest && item.note)).toBe(true);
+
+      // Cada nota do preset deve possuir frequência válida e furo associado
+      for (const item of playbackItems) {
+        if (!item.isRest && item.note) {
+          expect(item.note.frequency).toBeGreaterThan(0);
+          expect(HOLE_MAP[item.note.key]).toBeDefined();
+        }
+      }
+    }
   });
 
   it('deve ter furos definidos para todas as notas básicas', () => {
