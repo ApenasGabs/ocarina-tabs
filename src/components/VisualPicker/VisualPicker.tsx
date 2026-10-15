@@ -112,43 +112,43 @@ export const VisualPicker: React.FC<VisualPickerProps> = ({
       </div>
 
       {/* Grid of Ocarina Visual Fingerings */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3 max-h-[360px] overflow-y-auto p-1 scrollbar-thin">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5 max-h-[420px] overflow-y-auto p-1.5 scrollbar-thin">
         {displayedNotes.map((note) => (
           <button
             key={note.key}
             onClick={() => handleCardClick(note)}
-            className="group relative flex flex-col items-center justify-between p-2.5 rounded-xl border border-base-200 bg-base-200/40 hover:bg-base-200 hover:border-primary/50 hover:shadow-md transition-all active:scale-95 text-left"
+            className="group relative flex flex-col items-center justify-between p-3 rounded-2xl border-2 border-base-200 bg-base-100 hover:bg-base-200/60 hover:border-primary shadow-sm hover:shadow-md transition-all active:scale-95 text-left"
             title={`Inserir ${note.label} (${note.frequency} Hz) - ${note.holes.length} furos fechados`}
           >
             {/* Note badge */}
-            <div className="w-full flex items-center justify-between mb-1">
-              <span className={`font-black text-sm ${note.isAccidental ? 'text-secondary' : 'text-primary'}`}>
+            <div className="w-full flex items-center justify-between mb-1.5">
+              <span className={`font-black text-base ${note.isAccidental ? 'text-secondary' : 'text-primary'}`}>
                 {note.label}
               </span>
               <span
                 onClick={(e) => handlePreviewAudio(e, note)}
-                className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-primary transition-opacity"
-                title="Tocar áudio da nota"
+                className="btn btn-ghost btn-xs btn-circle p-0.5 hover:text-primary transition-opacity"
+                title="Ouvir som desta nota"
               >
-                <Volume2 className="w-3.5 h-3.5" />
+                <Volume2 className="w-4 h-4" />
               </span>
             </div>
 
             {/* Ocarina Diagram */}
-            <div className="py-1">
+            <div className="py-1.5 flex items-center justify-center">
               <OcarinaDiagram
                 holes={note.holes}
-                size={58}
+                size={70}
                 fillColor="#1e293b"
                 outlineColor="#475569"
                 holeOpenColor="#ffffff"
               />
             </div>
 
-            {/* Subtitle / Holes count */}
-            <div className="w-full text-center mt-1 pt-1 border-t border-base-300/40 flex items-center justify-between text-[10px] text-base-content/60 font-mono">
-              <span>{note.holes.length} furos</span>
-              <span>{note.key}</span>
+            {/* Subtitle / Holes count & shortcut */}
+            <div className="w-full text-center mt-2 pt-1.5 border-t border-base-200 flex items-center justify-between text-xs text-base-content/70 font-mono">
+              <span className="font-medium">{note.holes.length} furos</span>
+              <span className="badge badge-neutral badge-xs font-bold px-1.5 py-0.5">{note.key}</span>
             </div>
           </button>
         ))}

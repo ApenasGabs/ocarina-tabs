@@ -48,3 +48,18 @@ export interface TabPlaybackItem {
   durationBeats: number;
   index: number;
 }
+
+export type ButtonScale = 'sm' | 'md' | 'lg';
+
+export interface ParsedNoteToken {
+  id: string;
+  char: string;
+  note?: OcarinaNote;
+  isRest: boolean;
+  beats: number;
+  rawText: string;
+  startIndex: number;
+  endIndex: number;
+  index: number;
+}
+

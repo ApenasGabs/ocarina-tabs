@@ -3,10 +3,11 @@ import { NoteToolbar } from './components/NoteToolbar/NoteToolbar';
 import { VisualPicker } from './components/VisualPicker/VisualPicker';
 import { RhythmControl } from './components/RhythmControl/RhythmControl';
 import { TabEditor } from './components/TabEditor/TabEditor';
+import { NoteTimeline } from './components/NoteTimeline/NoteTimeline';
 import { InteractiveOcarinaModal } from './components/OcarinaDiagram/InteractiveOcarinaModal';
 import { ThemeSelector } from './components/ThemeSelector/ThemeSelector';
 import { DURATION_OPTIONS, SAMPLE_SONGS, getNotesForKey } from './constants/ocarinaData';
-import type { DurationOption, FontVariant, FontSizeUnit, OcarinaKey, OcarinaNote, SampleSong } from './types/ocarina';
+import type { DurationOption, FontVariant, FontSizeUnit, OcarinaKey, OcarinaNote, SampleSong, ButtonScale } from './types/ocarina';
 import { parseUrlParams, serializeUrlParams, toggleSectionLigature } from './utils/ocarinaParser';
 import { exportTabAsImage } from './utils/canvasExport';
 import { playOcarinaFrequency, setMuted } from './audio/ocarinaAudio';
@@ -28,6 +29,9 @@ export function App() {
   const [selectedDuration, setSelectedDuration] = useState<DurationOption>(DURATION_OPTIONS[2]); // Semínima (1 tempo)
   const [autoSustainEnabled, setAutoSustainEnabled] = useState<boolean>(false);
   const [showMiniDiagrams, setShowMiniDiagrams] = useState<boolean>(true);
+  const [buttonScale, setButtonScale] = useState<ButtonScale>('md');
+  const [showTimeline, setShowTimeline] = useState<boolean>(true);
+  const [activePlaybackIndex, setActivePlaybackIndex] = useState<number | null>(null);
   const [activeTabMode, setActiveTabMode] = useState<'editor' | 'visual'>('editor');
   const [isInteractiveModalOpen, setIsInteractiveModalOpen] = useState<boolean>(false);
 
@@ -292,7 +296,7 @@ export function App() {
             </ul>
           </div>
 
-          {/* Alternador de Modo: Editor vs Seletor Visual */}
+          {/* Alternador de Modo: Editor vs Seletor Visual vs Linha do Tempo */}
           <div className="join join-horizontal bg-base-200 p-0.5 rounded-xl border border-base-300">
             <button
               onClick={() => setActiveTabMode('editor')}
@@ -310,6 +314,16 @@ export function App() {
             >
               <Eye className="w-3 h-3" />
               Seletor por Furinhos
+            </button>
+            <button
+              onClick={() => setShowTimeline(!showTimeline)}
+              className={`btn btn-xs join-item rounded-lg gap-1 ${
+                showTimeline ? 'btn-secondary shadow-sm' : 'btn-ghost'
+              }`}
+              title="Exibir ou ocultar Linha do Tempo com controle individual de duração"
+            >
+              <span>🎼</span>
+              <span>Tempos por Nota</span>
             </button>
           </div>
         </div>
@@ -343,7 +357,7 @@ export function App() {
                 Crie e pratique tablaturas para Ocarina de 12 Furos
               </h2>
               <p className="text-xs text-base-content/70">
-                Toque notas com som acústico realista, escolha posições visualmente e defina tempos para as notas!
+                Toque notas com som acústico realista, escolha posições visualmente e defina tempos individuais para cada nota!
               </p>
             </div>
           </div>
@@ -358,7 +372,7 @@ export function App() {
           </div>
         </div>
 
-        {/* Note Toolbar: Tonalidade, Fonte, Tamanho, Botões de Notas */}
+        {/* Note Toolbar: Tonalidade, Fonte, Tamanho, Botões de Notas Grandes */}
         <NoteToolbar
           ocarinaKey={ocarinaKey}
           onKeyChange={setOcarinaKey}
@@ -374,6 +388,8 @@ export function App() {
           onToggleSound={() => setSoundEnabled(!soundEnabled)}
           showMiniDiagrams={showMiniDiagrams}
           onToggleMiniDiagrams={() => setShowMiniDiagrams(!showMiniDiagrams)}
+          buttonScale={buttonScale}
+          onButtonScaleChange={setButtonScale}
         />
 
         {/* Seletor Visual de Furinhos (Exibido se o usuário escolheu modo visual ou toggled) */}
@@ -399,7 +415,22 @@ export function App() {
           tabText={tabText}
           ocarinaKey={ocarinaKey}
           soundEnabled={soundEnabled}
+          onPlayingIndexChange={setActivePlaybackIndex}
         />
+
+        {/* Linha do Tempo e Controle Individual de Duração por Nota */}
+        {showTimeline && (
+          <div className="animate-fade-in print:hidden">
+            <NoteTimeline
+              tabText={tabText}
+              onTabTextChange={updateTabTextWithHistory}
+              ocarinaKey={ocarinaKey}
+              soundEnabled={soundEnabled}
+              bpm={bpm}
+              activePlaybackIndex={activePlaybackIndex}
+            />
+          </div>
+        )}
 
         {/* Tablatura Editor */}
         <TabEditor

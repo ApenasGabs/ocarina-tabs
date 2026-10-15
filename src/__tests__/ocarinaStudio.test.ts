@@ -12,6 +12,11 @@ import {
   serializeUrlParams,
   toggleSectionLigature,
   parseTabForPlayback,
+  parseTabTokens,
+  updateNoteDurationInTab,
+  deleteNoteFromTab,
+  updateNotePitchInTab,
+  formatDurationLabel,
 } from '../utils/ocarinaParser';
 
 describe('Ocarina Musical Mappings & Frequencies', () => {
@@ -136,3 +141,71 @@ describe('Sample Songs Library', () => {
     expect(zeldasLullaby?.tabs).toContain('H - P - K');
   });
 });
+
+describe('Individual Note Duration & Timeline Manipulation', () => {
+  it('correctly tokenizes tab text into editable note tokens with beats', () => {
+    const tab = 'H - P - K - - -';
+    const tokens = parseTabTokens(tab, 'C');
+
+    expect(tokens).toHaveLength(3);
+
+    // Note H has 1 dash -> 2 beats
+    expect(tokens[0].char).toBe('H');
+    expect(tokens[0].beats).toBe(2);
+    expect(tokens[0].note?.label).toBe('E');
+
+    // Note P has 1 dash -> 2 beats
+    expect(tokens[1].char).toBe('P');
+    expect(tokens[1].beats).toBe(2);
+
+    // Note K has 3 dashes -> 4 beats
+    expect(tokens[2].char).toBe('K');
+    expect(tokens[2].beats).toBe(4);
+  });
+
+  it('updates duration of a specific note independently', () => {
+    const tab = 'H - P - K - - -';
+    const tokens = parseTabTokens(tab, 'C');
+
+    // Change note H (token 0) to 4 beats
+    const updated1 = updateNoteDurationInTab(tab, tokens[0], 4);
+    expect(updated1).toBe('H - - - P - K - - -');
+
+    // Re-parse and change note K (token 2) to 1 beat (no dashes)
+    const tokensUpdated = parseTabTokens(updated1, 'C');
+    const updated2 = updateNoteDurationInTab(updated1, tokensUpdated[2], 1);
+    expect(updated2).toBe('H - - - P - K');
+  });
+
+  it('deletes a specific note without breaking tab structure', () => {
+    const tab = 'D F H P';
+    const tokens = parseTabTokens(tab, 'C');
+
+    // Delete note F (index 1)
+    const afterDelete = deleteNoteFromTab(tab, tokens[1]);
+    expect(afterDelete).toBe('D H P');
+  });
+
+  it('changes pitch of a specific note in the tab', () => {
+    const tab = 'D - F -';
+    const tokens = parseTabTokens(tab, 'C');
+
+    const updated = updateNotePitchInTab(tab, tokens[0], 'H');
+    expect(updated).toBe('H - F -');
+  });
+
+  it('formats musical duration symbols and Portuguese labels accurately', () => {
+    expect(formatDurationLabel(4).symbol).toBe('𝅝');
+    expect(formatDurationLabel(4).namePt).toContain('Semibreve');
+
+    expect(formatDurationLabel(2).symbol).toBe('𝅗𝅥');
+    expect(formatDurationLabel(2).namePt).toContain('Mínima');
+
+    expect(formatDurationLabel(1).symbol).toBe('♩');
+    expect(formatDurationLabel(1).namePt).toContain('Semínima');
+
+    expect(formatDurationLabel(0.5).symbol).toBe('♪');
+    expect(formatDurationLabel(0.5).namePt).toContain('Colcheia');
+  });
+});
+
